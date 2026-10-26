@@ -1,0 +1,72 @@
+@model SpotResults
+<p class="results-count">@Model.Cards.Count @(Model.Cards.Count == 1 ? "spot matches" : "spots match") your filters. Status refreshes automatically.</p>
+
+@if (!Model.Cards.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-search"></i>
+        <h3 class="h5">No spots match these filters</h3>
+        <p class="mb-0">Turn off a filter such as power outlets or pick another building.</p>
+    </div>
+}
+else
+{
+    <div id="listView" class="row g-3">
+        @foreach (var c in Model.Cards)
+        {
+            var s = c.Spot;
+            var occ = s.CurrentOccupancy;
+            <div class="col-md-6 col-xl-4">
+                <article class="card spot-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <h3 class="h5 mb-1">@s.SpotName</h3>
+                            <span class="badge @s.EffectiveNoise.BadgeClass()">@s.EffectiveNoise</span>
+                        </div>
+                        <p class="spot-meta">@c.BuildingName, room @s.RoomNumber</p>
+
+                        @if (occ.HasValue)
+                        {
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>@occ.Value</span><span class="text-muted">about @s.EstimatedFreeSeats() free seats</span>
+                            </div>
+                            <div class="progress mb-3" style="height:6px" role="progressbar" aria-label="Occupancy">
+                                <div class="progress-bar @occ.Value.ProgressClass()" style="width:@(occ.Value.Percent())%"></div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="small text-muted mb-3">No recent reports. Be the first to update it.</p>
+                        }
+
+                        <ul class="amenities list-unstyled mb-0">
+                            <li><i class="bi bi-people"></i>@s.MaxCapacity seats</li>
+                            <li class="@(s.HasPowerOutlets ? "" : "text-muted")"><i class="bi bi-plug"></i>@(s.HasPowerOutlets ? "Power outlets" : "No outlets")</li>
+                            <li><i class="bi bi-calendar-check"></i>@(s.IsBookable ? "Reservation required" : "Walk-in")</li>
+                            <li><i class="bi bi-clock"></i>@s.OpeningTime.ToString("HH:mm") to @s.ClosingTime.ToString("HH:mm") (@(s.IsOpenNow() ? "open now" : "closed"))</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer d-flex gap-2">
+                        <a class="btn btn-primary btn-sm" asp-page="/Spots/Details" asp-route-id="@s.SpotID">View details</a>
+                        @if (s.IsBookable)
+                        {
+                            <a class="btn btn-outline-primary btn-sm" href="@Url.Page("/Reservations/Create", new { spotId = s.SpotID })">Reserve</a>
+                        }
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+}
+
+<div id="mapView" class="campus-map d-none" role="group" aria-label="Campus map. Select a building to filter spots.">
+    <span class="map-label map-label-quad">Central quad</span>
+    @foreach (var b in Model.Buildings)
+    {
+        var n = Model.Cards.Count(c => c.Spot.BuildingID == b.BuildingID);
+        <button type="button" class="map-marker @(n == 0 ? "is-empty" : "")" style="left:@(b.MapX)%;top:@(b.MapY)%" data-building="@b.BuildingID">
+            <span class="map-count">@n</span>
+            <span class="map-name">@b.BuildingName</span>
+        </button>
+    }
+</div>

@@ -1,0 +1,83 @@
+@page
+@model StudySpace.Pages.Reservations.CreateModel
+@{
+    ViewData["Title"] = "Book a room";
+}
+
+@section PageHeader {
+    <h1>Book a study room</h1>
+    <p>Pick a room and time slot. Confirmation is instant.</p>
+}
+
+@section Sidebar {
+    <div class="filter-panel">
+        <h2 class="h6 mb-3"><i class="bi bi-info-circle me-1"></i>Booking rules</h2>
+        <ul class="small ps-3 mb-0 rules-list">
+            <li>Up to @ReservationService.MaxHours hours per reservation.</li>
+            <li>Book up to @ReservationService.MaxDaysAhead days ahead.</li>
+            <li>Start and end on the same day, inside opening hours.</li>
+            <li>You cannot hold two overlapping reservations.</li>
+            <li>Cancel from My reservations if your plans change.</li>
+        </ul>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">Reservation details</div>
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post" id="bookingForm" data-availability-url="@Url.Page("/Reservations/Create", "Availability")">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label asp-for="Input.SpotId" class="form-label"></label>
+                    <select asp-for="Input.SpotId" class="form-select" asp-items="Model.SpotOptions">
+                        <option value="">Choose a room</option>
+                    </select>
+                    <span asp-validation-for="Input.SpotId" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.Date" class="form-label"></label>
+                    <input asp-for="Input.Date" class="form-control" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="Input.Date" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <div id="availability" class="availability d-none" aria-live="polite"></div>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Input.StartTime" class="form-label"></label>
+                    <input asp-for="Input.StartTime" class="form-control" type="time" />
+                    <span asp-validation-for="Input.StartTime" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.EndTime" class="form-label"></label>
+                    <input asp-for="Input.EndTime" class="form-control" type="time" />
+                    <span asp-validation-for="Input.EndTime" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Input.Notes" class="form-label">Notes (optional)</label>
+                    <textarea asp-for="Input.Notes" class="form-control" rows="2" maxlength="200" placeholder="e.g. Final project meeting, 5 people"></textarea>
+                    <span asp-validation-for="Input.Notes" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        <input asp-for="Input.AcceptPolicy" class="form-check-input" />
+                        <label asp-for="Input.AcceptPolicy" class="form-check-label">I will keep to the room's noise policy and leave it tidy.</label>
+                    </div>
+                    <span asp-validation-for="Input.AcceptPolicy" class="text-danger"></span>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Confirm reservation</button>
+                    <a class="btn btn-outline-secondary" asp-page="/Spots/Index">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/booking.js" asp-append-version="true"></script>
+}

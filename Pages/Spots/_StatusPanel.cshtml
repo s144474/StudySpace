@@ -1,0 +1,67 @@
+@model StudySpace.Pages.Spots.DetailsModel
+@{
+    var s = Model.Spot;
+    var occ = s.CurrentOccupancy;
+}
+<div class="card status-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Live status</span>
+        @if (s.LastReportAt.HasValue)
+        {
+            <small class="text-muted">updated @s.LastReportAt.Value.ToString("HH:mm")</small>
+        }
+    </div>
+    <div class="card-body">
+        <div class="row g-3 text-center mb-3">
+            <div class="col-6">
+                <div class="stat-label">Noise now</div>
+                <span class="badge fs-6 @s.EffectiveNoise.BadgeClass()">@s.EffectiveNoise</span>
+            </div>
+            <div class="col-6">
+                <div class="stat-label">Occupancy</div>
+                @if (occ.HasValue)
+                {
+                    <span class="badge fs-6 @occ.Value.BadgeClass()">@occ.Value</span>
+                }
+                else
+                {
+                    <span class="text-muted">No recent report</span>
+                }
+            </div>
+        </div>
+        @if (occ.HasValue)
+        {
+            <div class="progress mb-1" style="height:8px" role="progressbar" aria-label="Occupancy">
+                <div class="progress-bar @occ.Value.ProgressClass()" style="width:@(occ.Value.Percent())%"></div>
+            </div>
+            <p class="small text-muted">About @s.EstimatedFreeSeats() of @s.MaxCapacity seats free.</p>
+        }
+
+        <h3 class="h6 mt-3">Recent reports</h3>
+        @if (!Model.Reports.Any())
+        {
+            <p class="text-muted mb-0">Nobody has reported yet. Share an update to help others.</p>
+        }
+        else
+        {
+            <ul class="list-group list-group-flush report-list">
+                @foreach (var r in Model.Reports)
+                {
+                    <li class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span>
+                                <span class="badge @r.ReportedNoise.BadgeClass()">@r.ReportedNoise</span>
+                                <span class="badge @r.OccupancyLevel.BadgeClass()">@r.OccupancyLevel</span>
+                            </span>
+                            <small class="text-muted">@r.ReporterName, @r.TimeAgo()</small>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(r.Comment))
+                        {
+                            <div class="small mt-1">@r.Comment</div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>

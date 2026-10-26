@@ -1,0 +1,124 @@
+@page "{id:int}"
+@model StudySpace.Pages.Spots.DetailsModel
+@{
+    var s = Model.Spot;
+    ViewData["Title"] = s.SpotName;
+    bool signedIn = User.Identity?.IsAuthenticated == true;
+}
+
+@section PageHeader {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a asp-page="/Spots/Index">Study spots</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@s.SpotName</li>
+        </ol>
+    </nav>
+    <h1>@s.SpotName</h1>
+    <p>@Model.Building.BuildingName, @Model.Building.CampusZone, room @s.RoomNumber</p>
+}
+
+@if (!s.IsActive)
+{
+    <div class="alert alert-secondary"><i class="bi bi-slash-circle me-2"></i>This spot is currently disabled by the administrators.</div>
+}
+@if (!string.IsNullOrWhiteSpace(s.MaintenanceNotice))
+{
+    <div class="alert alert-warning"><i class="bi bi-tools me-2"></i><strong>Maintenance notice:</strong> @s.MaintenanceNotice</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card mb-4">
+            <div class="card-header">About this spot</div>
+            <div class="card-body">
+                <dl class="row mb-0 spot-details">
+                    <dt class="col-sm-4">Noise policy</dt>
+                    <dd class="col-sm-8"><span class="badge @s.NoiseCategory.BadgeClass()">@s.NoiseCategory</span></dd>
+                    <dt class="col-sm-4">Seats</dt>
+                    <dd class="col-sm-8">@s.MaxCapacity</dd>
+                    <dt class="col-sm-4">Power outlets</dt>
+                    <dd class="col-sm-8">@(s.HasPowerOutlets ? "Available" : "Not available")</dd>
+                    <dt class="col-sm-4">Access</dt>
+                    <dd class="col-sm-8">@(s.IsBookable ? "Reservation required" : "Walk-in, no booking needed")</dd>
+                    <dt class="col-sm-4">Opening hours</dt>
+                    <dd class="col-sm-8">@s.OpeningTime.ToString("HH:mm") to @s.ClosingTime.ToString("HH:mm")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div id="statusPanel" data-url="@Url.Page("/Spots/Details", "Status", new { id = s.SpotID })">
+            <partial name="_StatusPanel" model="Model" />
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card mb-4">
+            <div class="card-header">Report current conditions</div>
+            <div class="card-body">
+                @if (!signedIn)
+                {
+                    <p class="mb-3">Log in to tell other students how busy and noisy this spot is right now.</p>
+                    <a class="btn btn-primary" asp-page="/Account/Login" asp-route-returnUrl="@Url.Page("/Spots/Details", new { id = s.SpotID })">Log in to report</a>
+                }
+                else
+                {
+                    <form id="reportForm" method="post" asp-page-handler="Report" asp-route-id="@s.SpotID">
+                        <div id="reportMessage" class="alert d-none" role="alert"></div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Noise" class="form-label"></label>
+                            <select asp-for="Input.Noise" class="form-select" asp-items="Html.GetEnumSelectList<NoiseCategory>()">
+                                <option value="">Select noise level</option>
+                            </select>
+                            <span asp-validation-for="Input.Noise" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Occupancy" class="form-label"></label>
+                            <select asp-for="Input.Occupancy" class="form-select" asp-items="Html.GetEnumSelectList<OccupancyLevel>()">
+                                <option value="">Select occupancy</option>
+                            </select>
+                            <span asp-validation-for="Input.Occupancy" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Comment" class="form-label">Comment (optional)</label>
+                            <textarea asp-for="Input.Comment" class="form-control" rows="2" maxlength="140" placeholder="e.g. Window seats are taken"></textarea>
+                            <span asp-validation-for="Input.Comment" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Share update</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        @if (s.IsBookable && s.IsActive)
+        {
+            <div class="card">
+                <div class="card-header">Reserve this room</div>
+                <div class="card-body">
+                    <form method="get" action="@Url.Page("/Reservations/Create")">
+                        <input type="hidden" name="Input.SpotId" value="@s.SpotID" />
+                        <div class="mb-3">
+                            <label class="form-label" for="qDate">Date</label>
+                            <input id="qDate" type="date" name="Input.Date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col">
+                                <label class="form-label" for="qStart">From</label>
+                                <input id="qStart" type="time" name="Input.StartTime" class="form-control" required />
+                            </div>
+                            <div class="col">
+                                <label class="form-label" for="qEnd">To</label>
+                                <input id="qEnd" type="time" name="Input.EndTime" class="form-control" required />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-gold">Continue to booking</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/details.js" asp-append-version="true"></script>
+}

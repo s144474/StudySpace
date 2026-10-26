@@ -1,0 +1,97 @@
+@page
+@model StudySpace.Pages.Reservations.IndexModel
+@{
+    ViewData["Title"] = "My reservations";
+}
+
+@section PageHeader {
+    <h1>My reservations</h1>
+    <p>Upcoming and past bookings for your account.</p>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <form method="get" class="d-flex align-items-center gap-2" id="statusForm">
+        <label asp-for="Status" class="form-label mb-0">Show</label>
+        <select asp-for="Status" class="form-select form-select-sm w-auto" asp-items="Html.GetEnumSelectList<ReservationStatus>()">
+            <option value="">All statuses</option>
+        </select>
+        <button type="submit" class="btn btn-outline-primary btn-sm">Apply</button>
+    </form>
+    <a class="btn btn-gold btn-sm" asp-page="Create"><i class="bi bi-plus-lg me-1"></i>New reservation</a>
+</div>
+
+@if (!Model.Rows.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-calendar2-x"></i>
+        <h3 class="h5">No reservations found</h3>
+        <p class="mb-0">Book a group room or study pod before the exam rush.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-studyspace align-middle">
+            <thead>
+                <tr><th>#</th><th>Room</th><th>Date</th><th>Time</th><th>Length</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    var r = row.Reservation;
+                    <tr>
+                        <td>@r.ReservationID</td>
+                        <td>
+                            <div class="fw-semibold">@row.SpotName</div>
+                            <div class="small text-muted">@row.BuildingName</div>
+                        </td>
+                        <td>@r.StartTime.ToString("ddd, d MMM yyyy")</td>
+                        <td>@r.StartTime.ToString("HH:mm") to @r.EndTime.ToString("HH:mm")</td>
+                        <td>@r.Duration.TotalHours.ToString("0.#") h</td>
+                        <td><span class="badge @r.Status.BadgeClass()">@r.Status</span></td>
+                        <td class="text-end">
+                            @if (r.Status == ReservationStatus.Confirmed && r.EndTime > DateTime.Now)
+                            {
+                                <button type="button" class="btn btn-outline-danger btn-sm js-cancel"
+                                        data-id="@r.ReservationID" data-name="@row.SpotName"
+                                        data-action="@Url.Page("/Reservations/Index", "Cancel", new { id = r.ReservationID })">
+                                    Cancel
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" class="modal-content" id="cancelForm">
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="cancelTitle">Cancel reservation?</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">The booking for <strong id="cancelName"></strong> will be released for other students.</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep it</button>
+                <button type="submit" class="btn btn-danger">Cancel reservation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const modal = new bootstrap.Modal('#cancelModal');
+            $('.js-cancel').on('click', function () {
+                $('#cancelForm').attr('action', $(this).data('action'));
+                $('#cancelName').text($(this).data('name'));
+                modal.show();
+            });
+            $('#Status').on('change', function () { $('#statusForm').trigger('submit'); });
+        });
+    </script>
+}

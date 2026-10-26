@@ -1,0 +1,12 @@
+@page "/Error"
+@model StudySpace.Pages.ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+<div class="empty-state">
+    <i class="bi bi-exclamation-octagon"></i>
+    <h1 class="h4">@Model.Heading</h1>
+    <p>@Model.Message</p>
+    <a class="btn btn-primary" asp-page="/Spots/Index">Back to study spots</a>
+    <p class="small text-muted mt-3 mb-0">Reference: @Model.RequestId</p>
+</div>

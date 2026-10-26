@@ -1,0 +1,16 @@
+* StudySpace: Campus Quiet Study Spot Finder
+COMP4701 Web Application Development, Sultan Qaboos University (Project Part 2 implementation)
+
+ASP.NET Core Razor Pages (.NET 10, Visual Studio 2026) + Bootstrap 5 + jQuery. Data is held in
+in-memory collections of the C# classes.
+
+* Run
+1. Open the folder in Visual Studio 2026 (File > Open > Project/Solution > StudySpace.csproj).
+2. Press F5 (profile "https"). The browser opens on https://localhost:7080.
+
+* Demo accounts
+| Role    | Email                        | Password    |
+|---------|------------------------------|-------------|
+| Student | student@student.squ.edu.om   | Student@123 |
+| Admin   | admin@squ.edu.om             | Admin@123   |
+

@@ -1,0 +1,102 @@
+@{
+    var path = Context.Request.Path;
+    string Active(string prefix, bool exact = false) =>
+        (exact ? path.Equals(prefix, StringComparison.OrdinalIgnoreCase) : path.StartsWithSegments(prefix, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+    bool signedIn = User.Identity?.IsAuthenticated == true;
+    bool isAdmin = User.IsInRole("Admin");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - StudySpace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-studyspace sticky-top" data-bs-theme="dark">
+            <div class="container">
+                <a class="navbar-brand" asp-page="/Spots/Index"><i class="bi bi-journal-bookmark-fill me-2"></i>StudySpace</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item"><a class="nav-link @(Active("/Spots") + (path == "/" ? "active" : ""))" asp-page="/Spots/Index">Find a spot</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("/Reservations/Create", true)" asp-page="/Reservations/Create">Book a room</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("/Reservations", true)" asp-page="/Reservations/Index">My reservations</a></li>
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item"><a class="nav-link @Active("/Admin")" asp-page="/Admin/Dashboard"><i class="bi bi-speedometer2 me-1"></i>Admin</a></li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav align-items-lg-center gap-lg-2">
+                        @if (signedIn)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-1"></i>@User.Identity!.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><span class="dropdown-item-text small text-muted">@(isAdmin ? "Administrator" : "Student")</span></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form method="post" asp-page="/Account/Logout" class="px-3">
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Log out</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link @Active("/Account/Login")" asp-page="/Account/Login">Log in</a></li>
+                            <li class="nav-item"><a class="btn btn-gold btn-sm" asp-page="/Account/Register">Create account</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        @if (IsSectionDefined("PageHeader"))
+        {
+            <div class="page-hero">
+                <div class="container">@await RenderSectionAsync("PageHeader")</div>
+            </div>
+        }
+    </header>
+
+    <main class="container py-4">
+        <partial name="_Alerts" />
+        @if (IsSectionDefined("Sidebar"))
+        {
+            <div class="row g-4">
+                <aside class="col-lg-3">@await RenderSectionAsync("Sidebar")</aside>
+                <section class="col-lg-9">@RenderBody()</section>
+            </div>
+        }
+        else
+        {
+            @RenderBody()
+        }
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
+            <span>StudySpace: Campus Quiet Study Spot Finder</span>
+            <span>COMP4701 Web Application Development, Sultan Qaboos University</span>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

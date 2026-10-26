@@ -1,0 +1,151 @@
+@page
+@model StudySpace.Pages.Admin.DashboardModel
+@{
+    ViewData["Title"] = "Admin dashboard";
+    int maxUsage = Math.Max(1, Model.Usage.Max(u => u.Reservations));
+}
+
+@section PageHeader {
+    <h1>Admin dashboard</h1>
+    <p>Manage study spots, moderate live reports and oversee reservations.</p>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-number">@Model.ActiveSpots / @Model.TotalSpots</div><div class="stat-label">Spots enabled</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-number">@Model.ReservationsToday</div><div class="stat-label">Bookings today</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-number">@Model.UpcomingReservations</div><div class="stat-label">Upcoming bookings</div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-tile"><div class="stat-number">@Model.Reports.Count</div><div class="stat-label">Recent live reports</div></div></div>
+</div>
+
+<ul class="nav nav-tabs mb-3" id="adminTabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-spots" data-hash="spots" type="button" role="tab">Study spots</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-reports" data-hash="reports" type="button" role="tab">Live reports</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-reservations" data-hash="reservations" type="button" role="tab">Reservations</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-usage" data-hash="usage" type="button" role="tab">Usage</button></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-spots" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">Study spots</h2>
+            <a class="btn btn-gold btn-sm" asp-page="EditSpot"><i class="bi bi-plus-lg me-1"></i>Add spot</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-studyspace align-middle">
+                <thead><tr><th>Spot</th><th>Building</th><th>Noise policy</th><th>Seats</th><th>Hours</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var c in Model.Spots)
+                    {
+                        var s = c.Spot;
+                        <tr class="@(s.IsActive ? "" : "row-disabled")">
+                            <td><div class="fw-semibold">@s.SpotName</div><div class="small text-muted">@s.RoomNumber @(s.IsBookable ? "(bookable)" : "")</div></td>
+                            <td>@c.BuildingName</td>
+                            <td><span class="badge @s.NoiseCategory.BadgeClass()">@s.NoiseCategory</span></td>
+                            <td>@s.MaxCapacity</td>
+                            <td>@s.OpeningTime.ToString("HH:mm") to @s.ClosingTime.ToString("HH:mm")</td>
+                            <td><span class="badge @(s.IsActive ? "bg-success" : "bg-secondary")">@(s.IsActive ? "Enabled" : "Disabled")</span></td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-outline-primary btn-sm" asp-page="EditSpot" asp-route-id="@s.SpotID">Edit</a>
+                                <form method="post" asp-page-handler="Toggle" asp-route-id="@s.SpotID" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">@(s.IsActive ? "Disable" : "Enable")</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-reports" role="tabpanel">
+        <h2 class="h5">Crowdsourced reports</h2>
+        <p class="text-muted small">Hide incorrect or abusive reports. The spot's live status is recalculated from the remaining reports.</p>
+        <div class="table-responsive">
+            <table class="table table-studyspace align-middle">
+                <thead><tr><th>#</th><th>Spot</th><th>Reported</th><th>By</th><th>When</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var r in Model.Reports)
+                    {
+                        <tr class="@(r.IsHidden ? "row-disabled" : "")">
+                            <td>@r.ReportID</td>
+                            <td>@Model.SpotNameOf(r.SpotID)</td>
+                            <td>
+                                <span class="badge @r.ReportedNoise.BadgeClass()">@r.ReportedNoise</span>
+                                <span class="badge @r.OccupancyLevel.BadgeClass()">@r.OccupancyLevel</span>
+                                @if (!string.IsNullOrWhiteSpace(r.Comment)) { <div class="small text-muted">@r.Comment</div> }
+                            </td>
+                            <td>@r.ReporterName</td>
+                            <td>@r.TimeAgo()</td>
+                            <td class="text-end">
+                                @if (r.IsHidden) { <span class="badge bg-secondary">Hidden</span> }
+                                else
+                                {
+                                    <form method="post" asp-page-handler="HideReport" asp-route-id="@r.ReportID">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Hide</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-reservations" role="tabpanel">
+        <h2 class="h5">All reservations</h2>
+        <div class="table-responsive">
+            <table class="table table-studyspace align-middle">
+                <thead><tr><th>#</th><th>Room</th><th>Student</th><th>When</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        var r = row.Reservation;
+                        <tr>
+                            <td>@r.ReservationID</td>
+                            <td>@row.SpotName<div class="small text-muted">@row.BuildingName</div></td>
+                            <td>@row.UserName</td>
+                            <td>@r.StartTime.ToString("ddd d MMM, HH:mm") to @r.EndTime.ToString("HH:mm")</td>
+                            <td><span class="badge @r.Status.BadgeClass()">@r.Status</span></td>
+                            <td class="text-end">
+                                @if (r.Status == ReservationStatus.Confirmed && r.EndTime > DateTime.Now)
+                                {
+                                    <form method="post" asp-page-handler="Cancel" asp-route-id="@r.ReservationID">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-usage" role="tabpanel">
+        <h2 class="h5">Bookings by building</h2>
+        <p class="text-muted small">Counts all non-cancelled reservations.</p>
+        @foreach (var u in Model.Usage)
+        {
+            <div class="mb-3">
+                <div class="d-flex justify-content-between small"><span>@u.Building (@u.Spots spots)</span><span>@u.Reservations</span></div>
+                <div class="progress" style="height:10px" role="progressbar" aria-label="@u.Building bookings">
+                    <div class="progress-bar bg-navy" style="width:@(u.Reservations * 100 / maxUsage)%"></div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const hash = location.hash.replace('#', '');
+            if (hash) {
+                const btn = document.querySelector('[data-hash="' + hash + '"]');
+                if (btn) bootstrap.Tab.getOrCreateInstance(btn).show();
+            }
+            $('#adminTabs button').on('shown.bs.tab', function () { history.replaceState(null, '', '#' + $(this).data('hash')); });
+        });
+    </script>
+}

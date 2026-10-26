@@ -1,0 +1,67 @@
+@page "/Spots"
+@model StudySpace.Pages.Spots.IndexModel
+@{
+    ViewData["Title"] = "Find a study spot";
+}
+
+@section PageHeader {
+    <h1>Find a quiet place to study</h1>
+    <p>See noise levels, free seats and power outlets before you leave your dorm or class.</p>
+}
+
+@section Sidebar {
+    <form id="filterForm" method="get" class="filter-panel" data-cards-url="@Url.Page("/Spots/Index", "Cards")">
+        <h2 class="h6 mb-3"><i class="bi bi-sliders me-1"></i>Filters</h2>
+
+        <div class="mb-3">
+            <label asp-for="Filter.Search" class="form-label">Search</label>
+            <input asp-for="Filter.Search" class="form-control" placeholder="Name, room or building" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="Filter.BuildingId" class="form-label">Building</label>
+            <select asp-for="Filter.BuildingId" class="form-select"
+                    asp-items="@(new SelectList(Model.Results.Buildings, "BuildingID", "BuildingName"))">
+                <option value="">All buildings</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Filter.Noise" class="form-label">Noise level</label>
+            <select asp-for="Filter.Noise" class="form-select" asp-items="Html.GetEnumSelectList<NoiseCategory>()">
+                <option value="">Any noise level</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Filter.MinSeats" class="form-label">Minimum seats</label>
+            <input asp-for="Filter.MinSeats" type="number" min="1" max="500" class="form-control" placeholder="e.g. 4" />
+        </div>
+        <div class="form-check form-switch mb-2">
+            <input asp-for="Filter.PowerOutlets" class="form-check-input" />
+            <label asp-for="Filter.PowerOutlets" class="form-check-label">Has power outlets</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+            <input asp-for="Filter.BookableOnly" class="form-check-input" />
+            <label asp-for="Filter.BookableOnly" class="form-check-label">Bookable rooms only</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+            <input asp-for="Filter.OpenNow" class="form-check-input" />
+            <label asp-for="Filter.OpenNow" class="form-check-label">Open now</label>
+        </div>
+        <button type="button" id="resetFilters" class="btn btn-outline-secondary btn-sm w-100">Clear filters</button>
+    </form>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">Study spots</h2>
+    <div class="btn-group btn-group-sm" role="group" aria-label="View">
+        <button type="button" class="btn btn-outline-primary active" data-view="list"><i class="bi bi-grid me-1"></i>List</button>
+        <button type="button" class="btn btn-outline-primary" data-view="map"><i class="bi bi-map me-1"></i>Campus map</button>
+    </div>
+</div>
+
+<div id="results" aria-live="polite">
+    <partial name="_SpotCards" model="Model.Results" />
+</div>
+
+@section Scripts {
+    <script src="~/js/spots.js" asp-append-version="true"></script>
+}

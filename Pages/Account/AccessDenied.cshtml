@@ -1,0 +1,11 @@
+@page
+@model StudySpace.Pages.Account.AccessDeniedModel
+@{
+    ViewData["Title"] = "Access denied";
+}
+<div class="empty-state">
+    <i class="bi bi-shield-lock"></i>
+    <h1 class="h4">Access denied</h1>
+    <p>Your account does not have permission to open this page.</p>
+    <a class="btn btn-primary" asp-page="/Spots/Index">Back to study spots</a>
+</div>

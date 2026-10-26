@@ -1,0 +1,73 @@
+@page "{id:int?}"
+@model StudySpace.Pages.Admin.EditSpotModel
+@{
+    ViewData["Title"] = Model.IsNew ? "Add study spot" : "Edit study spot";
+}
+
+@section PageHeader {
+    <h1>@ViewData["Title"]</h1>
+    <p>Set the location details, opening hours and noise policy shown to students.</p>
+}
+
+<div class="card">
+    <div class="card-body p-4">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <form method="post">
+            <input type="hidden" asp-for="Input.SpotID" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Input.BuildingID" class="form-label"></label>
+                    <select asp-for="Input.BuildingID" class="form-select" asp-items="Model.BuildingOptions"><option value="">Choose a building</option></select>
+                    <span asp-validation-for="Input.BuildingID" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.SpotName" class="form-label"></label>
+                    <input asp-for="Input.SpotName" class="form-control" placeholder="e.g. 2nd Floor Silent Corner" />
+                    <span asp-validation-for="Input.SpotName" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.RoomNumber" class="form-label"></label>
+                    <input asp-for="Input.RoomNumber" class="form-control" />
+                    <span asp-validation-for="Input.RoomNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.MaxCapacity" class="form-label"></label>
+                    <input asp-for="Input.MaxCapacity" type="number" class="form-control" />
+                    <span asp-validation-for="Input.MaxCapacity" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.NoiseCategory" class="form-label"></label>
+                    <select asp-for="Input.NoiseCategory" class="form-select" asp-items="Html.GetEnumSelectList<NoiseCategory>()"></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.OpeningTime" class="form-label"></label>
+                    <input asp-for="Input.OpeningTime" type="time" class="form-control" />
+                    <span asp-validation-for="Input.OpeningTime" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.ClosingTime" class="form-label"></label>
+                    <input asp-for="Input.ClosingTime" type="time" class="form-control" />
+                    <span asp-validation-for="Input.ClosingTime" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Input.MaintenanceNotice" class="form-label"></label>
+                    <textarea asp-for="Input.MaintenanceNotice" class="form-control" rows="2" placeholder="Shown to students on the spot page"></textarea>
+                    <span asp-validation-for="Input.MaintenanceNotice" class="text-danger"></span>
+                </div>
+                <div class="col-12 d-flex flex-wrap gap-4">
+                    <div class="form-check form-switch"><input asp-for="Input.HasPowerOutlets" class="form-check-input" /><label asp-for="Input.HasPowerOutlets" class="form-check-label"></label></div>
+                    <div class="form-check form-switch"><input asp-for="Input.IsBookable" class="form-check-input" /><label asp-for="Input.IsBookable" class="form-check-label"></label></div>
+                    <div class="form-check form-switch"><input asp-for="Input.IsActive" class="form-check-input" /><label asp-for="Input.IsActive" class="form-check-label"></label></div>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Save spot</button>
+                    <a class="btn btn-outline-secondary" asp-page="Dashboard">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
