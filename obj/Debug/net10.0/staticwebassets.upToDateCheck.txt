@@ -1,0 +1,10 @@
+wwwroot\css\site.css
+wwwroot\js\booking.js
+wwwroot\js\details.js
+wwwroot\js\site.js
+wwwroot\js\spots.js
+C:\Users\ghass\Desktop\Web Application Development\StudySpace\wwwroot\css\site.css
+C:\Users\ghass\Desktop\Web Application Development\StudySpace\wwwroot\js\booking.js
+C:\Users\ghass\Desktop\Web Application Development\StudySpace\wwwroot\js\details.js
+C:\Users\ghass\Desktop\Web Application Development\StudySpace\wwwroot\js\site.js
+C:\Users\ghass\Desktop\Web Application Development\StudySpace\wwwroot\js\spots.js
