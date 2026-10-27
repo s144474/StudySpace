@@ -1,3 +1,6 @@
+$.validator.addMethod('mustbetrue', function (value, element) { return element.checked; });
+$.validator.unobtrusive.adapters.addBool('mustbetrue');
+
 //Booking form show opening hours and already booked slots for the chosen room/date (jQuery)
 $(function () {
     const $form = $('#bookingForm');
