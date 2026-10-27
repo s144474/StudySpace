@@ -47,7 +47,7 @@ public class CreateModel : AppPageModel
         [StringLength(200, ErrorMessage = "Notes cannot be longer than 200 characters.")]
         public string? Notes { get; set; }
 
-        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the booking policy to continue.")]
+        [MustBeTrue(ErrorMessage = "You must accept the booking policy to continue.")]
         [Display(Name = "Booking policy")]
         public bool AcceptPolicy { get; set; }
 
